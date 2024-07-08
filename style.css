@@ -1,0 +1,144 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: sans-serif;
+	border-collapse: collapse;
+}
+body {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	min-width: 100vw;
+}
+.row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+.row-main {
+	display: flex;
+	gap: 16px;
+}
+.col {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+th, td {
+	border: 1px solid #000;
+	padding: 2px 8px;
+}
+td {
+	border-color: gray;
+	color: gray;
+}
+form {
+	padding: 8px;
+	border: 1px solid #000;
+}
+input {
+	padding: 4px 8px;
+}
+button {
+	padding: 4px 8px;
+}
+
+.alert__container {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	padding: 0px 16px 16px 0px;
+	z-index: 100;
+	overflow: hidden;
+}
+.alert {
+	display: grid;
+	grid-template-columns: 48px auto 48px;
+	margin: 0;
+	box-shadow: inset 0px 0px 0px 1px purple;
+	padding: 0;
+	align-items: center;
+	max-width: min(500px, calc(100vw - 16px));
+	animation: alertOutIn 0.5s ease-in-out both;
+	border-radius: 0.75rem;
+	overflow: hidden;
+}
+.alert--success {
+	box-shadow: inset 0px 0px 0px 1px green;
+}
+.alert--error {
+	box-shadow: inset 0px 0px 0px 1px red;
+}
+.alert--info {
+	box-shadow: inset 0px 0px 0px 1px blue;
+}
+.alert--warn {
+	box-shadow: inset 0px 0px 0px 1px orange;
+}
+.alert.remove {
+	animation: alertInOut 0.5s ease-in-out both;
+}
+@keyframes alertOutIn {
+	0% {
+		opacity: 0;
+		transform: translate(100%, 0);
+	}
+	100% {
+		opacity: 1;
+		transform: translate(0, 0);
+	}
+}
+@keyframes alertInOut {
+	0% {
+		opacity: 1;
+		transform: translate(0, 0);
+		position: relative;
+	}
+	99% {
+		position: relative;
+	}
+	100% {
+		position: absolute;
+		opacity: 0;
+		transform: translate(100%, 0);
+	}
+}
+.alert__icon, .alert__close {
+	padding: 1px 0px 1px 1px;
+	margin: -1px 0 -1px -1px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	height: calc(100% + 2px);
+	color: #fff;
+	text-align: center;
+	border-radius: .75rem 0px 0px .75rem;
+}
+.alert__close {
+	cursor: pointer;
+	background: red;
+}
+
+.alert__icon--success {
+	background: green;
+}
+.alert__icon--error {
+	background: red;
+}
+.alert__icon--info {
+	background: cornflowerblue;
+}
+.alert__icon--warn {
+	background: orange;
+}
+.alert__body {
+	padding: 0.5rem 1rem;
+	margin: 0;
+}

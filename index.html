@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Генератор названий Вапролиума</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div class="row-main">
+		<div class="col">
+			<h1>Генератор названий Вапролиума</h1>
+			<form action="get" id="translateForm" class="col form">
+				<input type="text" id="srcword" placeholder="Мир"></input>
+				<button type="submit">Генерировать</button>
+				<div class="row">
+					<p id="outputEnglishWord">World</p>
+					<p id="outputEnglishSyllables">[Wor]ld</p>
+				</div>
+				<div class="row">
+					<p id="outputLatinWord">Mundus</p>
+					<p id="outputLatinSyllables">Mun dus</p>
+				</div>
+				<div class="row">
+					<p id="outputAnglitonWord">Wordus</p>
+					<p id="outputAnglitonSyllables">Wor dus</p>
+				</div>
+				<p id="outputFullWord">Мир => World + Mundus => Wordus</p>
+			</form>
+		</div>
+		<div class="col">
+			<h1>История</h1>
+			<table id="table">
+				<thead>
+					<tr>
+						<th>Русское Слово</th>
+						<th>Английское Слово</th>
+						<th>Латинское Слово</th>
+						<th>Англитонское Слово</th>
+					</tr>
+				</thead>
+				<tbody id="outputDictionary">
+					<tr>
+						<td>Мир</td>
+						<td>World</td>
+						<td>Mundus</td>
+						<td>Wordus</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="alert__container"></div>
+	<script type="module" src="script.js"></script>
+</body>
+</html>
