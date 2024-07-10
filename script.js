@@ -63,7 +63,6 @@ function getFirstLetters(word, length) {
 }
 function checkCVCLetters(word) {
 	let wordFragment = getLastLetters(word, 3);
-	console.log(CONSONANTS.indexOf(wordFragment[0]) > -1, VOWELS.indexOf(wordFragment[1]) > -1, CONSONANTS.indexOf(wordFragment[2]) > -1);
 	if(CONSONANTS.indexOf(wordFragment[0]) > -1 && VOWELS.indexOf(wordFragment[1]) > -1 && CONSONANTS.indexOf(wordFragment[2]) > -1) {
 		return true
 	}
@@ -144,9 +143,8 @@ const translateRuToAngliton = async (word) => {
 	return upperFirstLetter(result.trim());
 }
 const translateWord = async (word) => {
-	console.log("translater",word)
-	const enWord = await translateRuToEn(upperFirstLetter(word));
-	const latWord = await translateRuToLat(upperFirstLetter(word));
+	const enWord = await translateRuToEn(word);
+	const latWord = await translateRuToLat(word);
 	return {enWord, latWord};
 } 
 const checkWordArticle = (word) => {
@@ -210,7 +208,6 @@ const createRowModal = (row, ruWord, enWord, latWord, anglitonWord) => {
 	editButton.innerHTML = 'Изменить';
 	editButton.addEventListener('click', () => {
 		modal.hide();
-		console.log(inputRu.value, inputEn.value, inputLat.value, inputAngl.value)
 		updateWordInDictionary({
 			ruWord: upperFirstLetter(inputRu.value),
 			enWord: upperFirstLetter(inputEn.value),
@@ -339,7 +336,6 @@ TranslateForm.addEventListener('submit', async (event) => {
 	let ruWord = SrcWord.value
 	if(checkThisWordInDictionary(ruWord)) return
 	let {enWord, latWord} = await translateWord(ruWord);
-	console.log("src", enWord, latWord);
 	if(checkWordArticle(enWord)) enWord = enWord.split(' ')[1]
 	if(checkWordArticle(latWord)) latWord = latWord.split(' ')[1]
 	const anglitonWord = await translateRuToAngliton(ruWord);
@@ -358,10 +354,10 @@ TranslateForm.addEventListener('submit', async (event) => {
 	outputFullWord.innerText = `${ruWord} => ${enWord} + ${latWord} => ${anglitonWord}`
 
 	addWordToDictionary({
-		ruWord: upperFirstLetter(ruWord),
-		enWord: upperFirstLetter(enWord),
-		latWord: upperFirstLetter(latWord),
-		anglitonWord: upperFirstLetter(anglitonWord)
+		ruWord: ruWord,
+		enWord: enWord,
+		latWord: latWord,
+		anglitonWord: anglitonWord
 	})
 })
 
@@ -402,7 +398,7 @@ function checkThisWordInDictionary(word) {
 	if(dictionary === null) return false
 	for (let i = 0; i < dictionary.length; i++) {
 		const element = dictionary[i];
-		if(element.ruWord.toLowerCase() === word.toLowerCase()) {
+		if(element.ruWord === word) {
 			alert.warn(`Такое слово уже есть в словаре.<br>Слово ${word} - ${element.anglitonWord}`)
 			return true
 		}
