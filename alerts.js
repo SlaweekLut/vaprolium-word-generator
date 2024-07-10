@@ -1,3 +1,7 @@
+function removeTagsForConsole (e) {
+	e = e.replace(/<br>/g, '\n');
+	return e.replace(/<\/?[^>]+>/g, '');
+}
 function createAlert(status, info, timer) {
 	let alertContainer = document.querySelector('.alert__container');
 
@@ -50,19 +54,19 @@ function createAlert(status, info, timer) {
 
 export const alert = {
 	success: (e, timer = 5000, closeBtn = false) => {
-		console.log('%cSucces:', 'color: greenyellow', e);
+		console.log('%cSucces:', 'color: greenyellow', removeTagsForConsole(e));
 		createAlert('success', e, timer);
 	},
 	error: (e, timer = 5000, closeBtn = false) => {
-		console.log('%cError:', 'color: red', e);
+		console.log('%cError:', 'color: red', removeTagsForConsole(e));
 		createAlert('error', e, timer);
 	},
 	info: (e, timer = 5000, closeBtn = false) => {
-		console.log('%cInfo:', 'color: cornflowerblue', e);
+		console.log('%cInfo:', 'color: cornflowerblue', removeTagsForConsole(e));
 		createAlert('info', e, timer);
 	},
 	warn: (e, timer = 5000, closeBtn = false) => {
-		console.log('%cWarn:', 'color: orange', e);
+		console.log('%cWarn:', 'color: orange', removeTagsForConsole(e));
 		createAlert('warn', e, timer);
 	}
 };

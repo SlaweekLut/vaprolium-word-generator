@@ -1,11 +1,12 @@
 import { alert } from "./alerts.js";
+import Modal from "./modals.js";
 
 const CONSONANTS = 'bcdfghjklmnpqrstvwxz'
 const VOWELS = 'aeiouy'
 const syllableRegex = /[^aeiouy]*[aeiouy]+(?:[^aeiouy]*$|[^aeiouy](?=[^aeiouy]))?/gi;
 
 function splitIntoSyllables(words) {
-	if(words.indexOf('No Rule For Translate') > -1) return ['No Rule For Translate'];
+	if(words.indexOf('Нет правил перевода') > -1) return ['Нет правил перевода'];
 	return words.match(syllableRegex);
 }
 function checkLastLetter(word) {
@@ -17,6 +18,7 @@ function checkLastLetter(word) {
 	}
 }
 function upperFirstLetter(word) {
+	word = word.toLowerCase();
 	return word.charAt(0).toUpperCase() + word.slice(1);
 }
 function compareSyllables(firstWord, secondWord) {
@@ -105,7 +107,7 @@ const translateRuToAngliton = async (word) => {
 	let {enWord, latWord} = await translateWord(word);
 	enWord = enWord.toLowerCase();
 	latWord = latWord.toLowerCase();
-	let result = `${enWord} - ${latWord} - No Rule For Translate`;
+	let result = `${enWord} - ${latWord} - Нет правила перевода`;
 	let syllableEnWord = splitIntoSyllables(enWord.toLowerCase());
 	let syllableLatWord = splitIntoSyllables(latWord.toLowerCase());
 	if(enWord === latWord) {
@@ -137,13 +139,183 @@ const translateRuToAngliton = async (word) => {
 	} else if (syllableLatWord.length < 3 && syllableEnWord.length > 0) {
 		result = `${syllableEnWord[0]}${syllableLatWord.at(-1)}`
 	}
-	return upperFirstLetter(result);
+	return upperFirstLetter(result.trim());
 }
 const translateWord = async (word) => {
 	const enWord = await translateRuToEn(word);
 	const latWord = await translateRuToLat(word);
 	return {enWord, latWord};
 } 
+const checkWordArticle = (word) => {
+	console.log(word.split(' '))
+}
+const createConfirmationModal = (callbackConfirm, callbackCancel) => {
+	const id = getUniqueId('confirmation-modal-');
+	const confirmationModal = new Modal(id);
+
+	const actions = document.createElement('div');
+	actions.classList = 'modal__actions';
+
+	const cancelButton = document.createElement('button');
+	cancelButton.classList = 'button button--danger';
+	cancelButton.innerHTML = 'Отмена';
+	cancelButton.addEventListener('click', () => {
+		confirmationModal.delete();
+		callbackCancel();
+	});
+	actions.append(cancelButton);
+
+	const confirmButton = document.createElement('button');
+	confirmButton.classList = 'button button--primary';
+	confirmButton.innerHTML = 'Подтвердить';
+	confirmButton.addEventListener('click', () => {
+		confirmationModal.delete();
+		callbackConfirm();
+	});
+	actions.append(confirmButton);
+	confirmationModal.append(actions);
+
+	confirmationModal.show();
+}
+const createRowModal = (row, ruWord, enWord, latWord, anglitonWord) => {
+	const id = getUniqueId('modal-');
+	const modal = new Modal(id);
+
+	const actions = document.createElement('div');
+	actions.classList = 'modal__actions';
+
+	const inputRu = document.createElement('input');
+	inputRu.classList = 'modal__input';
+	inputRu.value = ruWord;
+
+	const inputEn = document.createElement('input');
+	inputEn.classList = 'modal__input';
+	inputEn.value = enWord;
+
+	const inputLat = document.createElement('input');
+	inputLat.classList = 'modal__input';
+	inputLat.value = latWord;
+
+	const inputAngl = document.createElement('input');
+	inputAngl.classList = 'modal__input';
+	inputAngl.value = anglitonWord;
+
+	modal.append(inputRu, inputEn, inputLat, inputAngl);
+
+	const editButton = document.createElement('button');
+	editButton.classList = 'button button--primary';
+	editButton.innerHTML = 'Изменить';
+	editButton.addEventListener('click', () => {
+		modal.hide();
+		console.log(inputRu.value, inputEn.value, inputLat.value, inputAngl.value)
+		updateWordInDictionary({
+			ruWord: upperFirstLetter(inputRu.value),
+			enWord: upperFirstLetter(inputEn.value),
+			latWord: upperFirstLetter(inputLat.value),
+			anglitonWord: upperFirstLetter(inputAngl.value),
+			row
+		});
+		modal.delete();
+	});
+	
+	const deleteButton = document.createElement('button');
+	deleteButton.classList = 'button button--danger';
+	deleteButton.innerHTML = 'Удалить';
+	deleteButton.addEventListener('click', () => {
+		modal.hide();
+		createConfirmationModal(() => {
+			removeWordFromDictionary(ruWord, row);
+			modal.delete();
+		}, 
+		() => {
+			modal.show();
+		});
+	});
+
+	actions.append(editButton);
+	actions.append(deleteButton);
+	modal.append(actions);
+
+	row.addEventListener('click', () => {
+		modal.show();
+	})
+}
+const getUniqueId = (prefix = '') => {
+	let id = `${prefix}${Math.random().toString(36).substring(7)}`
+	if(document.getElementById(id)) {
+		id = getUniqueId(prefix)
+	}
+	return id
+}
+const deleteRowElement = (row) => {
+	row.remove();
+}
+const checkEditedCells = (defaultTranslate, ruWord, enWord, latWord, anglitonWord) => {
+	return defaultTranslate.ruWord !== ruWord || defaultTranslate.enWord !== enWord || defaultTranslate.latWord !== latWord || defaultTranslate.anglitonWord !== anglitonWord
+}
+const getEditedCells = (defaultTranslate, ruWord, enWord, latWord, anglitonWord) => {
+	if(!checkEditedCells(defaultTranslate, ruWord, enWord, latWord, anglitonWord) || !defaultTranslate) {
+		return {
+			isRuEdited: false,
+			isEnEdited: false,
+			isLatEdited: false,
+			isAngEdited: false,
+		}
+	}
+	return {
+		isRuEdited: upperFirstLetter(ruWord) !== upperFirstLetter(defaultTranslate.ruWord),
+		isEnEdited: upperFirstLetter(enWord) !== upperFirstLetter(defaultTranslate.enWord),
+		isLatEdited: upperFirstLetter(latWord) !== upperFirstLetter(defaultTranslate.latWord),
+		isAngEdited: upperFirstLetter(anglitonWord) !== upperFirstLetter(defaultTranslate.anglitonWord),
+	}
+}
+const updateRowElement = ({row, ruWord, enWord, latWord, anglitonWord, defaultTranslate}) => {
+	const cellRu = row.children[0];
+	const cellEn = row.children[1];
+	const cellLat = row.children[2];
+	const cellAng = row.children[3];
+
+	const {isRuEdited, isEnEdited, isLatEdited, isAngEdited} = getEditedCells(defaultTranslate, ruWord, enWord, latWord, anglitonWord);
+	
+	isRuEdited ? cellRu.classList.add('table__cell--edited') : cellRu.classList.remove('table__cell--edited');
+	isEnEdited ? cellEn.classList.add('table__cell--edited') : cellEn.classList.remove('table__cell--edited');
+	isLatEdited ? cellLat.classList.add('table__cell--edited') : cellLat.classList.remove('table__cell--edited');
+	isAngEdited ? cellAng.classList.add('table__cell--edited') : cellAng.classList.remove('table__cell--edited');
+	
+	cellRu.innerHTML = ruWord;
+	cellEn.innerHTML = enWord;
+	cellLat.innerHTML = latWord;
+	cellAng.innerHTML = anglitonWord;
+
+	createRowModal(row, ruWord, enWord, latWord, anglitonWord)
+}
+const addRowElement = ({ruWord, enWord, latWord, anglitonWord, wordId, defaultTranslate = {}} = {}) => {
+	let id = getUniqueId('row-');
+	const row = document.createElement('tr');
+	row.dataset.wordId = wordId;
+	const {isRuEdited, isEnEdited, isLatEdited, isAngEdited} = getEditedCells(defaultTranslate, ruWord, enWord, latWord, anglitonWord);
+	row.id = id;
+	const cellRu = document.createElement('td');
+	const cellEn = document.createElement('td');
+	const cellLat = document.createElement('td');
+	const cellAng = document.createElement('td');
+	
+	isRuEdited ? cellRu.classList.add('table__cell--edited') : cellRu.classList.remove('table__cell--edited');
+	isEnEdited ? cellEn.classList.add('table__cell--edited') : cellEn.classList.remove('table__cell--edited');
+	isLatEdited ? cellLat.classList.add('table__cell--edited') : cellLat.classList.remove('table__cell--edited');
+	isAngEdited ? cellAng.classList.add('table__cell--edited') : cellAng.classList.remove('table__cell--edited');
+
+	cellRu.innerHTML = ruWord;
+	cellEn.innerHTML = enWord;
+	cellLat.innerHTML = latWord;
+	cellAng.innerHTML = anglitonWord;
+
+	row.append(cellRu, cellEn, cellLat, cellAng);
+
+	createRowModal(row, ruWord, enWord, latWord, anglitonWord)
+
+	outputDictionary.append(row);
+}
 
 const TranslateForm = document.querySelector('#translateForm');
 const SrcWord = document.querySelector('#srcword');
@@ -165,6 +337,8 @@ TranslateForm.addEventListener('submit', async (event) => {
 
 	const {enWord, latWord} = await translateWord(SrcWord.value);
 	const anglitonWord = await translateRuToAngliton(enWord, latWord);
+	// checkWordArticle(enWord)
+	// checkWordArticle(latWord)
 	const enWordSyllables = splitIntoSyllables(enWord);
 	const latWordSyllables = splitIntoSyllables(latWord);
 	const anglitonWordSyllables = splitIntoSyllables(anglitonWord);
@@ -179,7 +353,12 @@ TranslateForm.addEventListener('submit', async (event) => {
 
 	outputFullWord.innerText = `${SrcWord.value} => ${enWord} + ${latWord} => ${anglitonWord}`
 
-	addWordToDictionary(SrcWord.value, enWord, latWord, anglitonWord)
+	addWordToDictionary({
+		ruWord: upperFirstLetter(SrcWord.value),
+		enWord: upperFirstLetter(enWord),
+		latWord: upperFirstLetter(latWord),
+		anglitonWord: upperFirstLetter(anglitonWord)
+	})
 })
 
 function getDirectionary() {
@@ -188,27 +367,78 @@ function getDirectionary() {
 	if(dictionary === null) return
 	for (let i = 0; i < dictionary.length; i++) {
 		const element = dictionary[i];
-		outputDictionary.innerHTML += `<tr><td>${element.ruWord}</td><td>${element.enWord}</td><td>${element.latWord}</td><td>${element.anglitonWord}</td></tr>`
+		addRowElement({
+			ruWord: element.ruWord,
+			enWord: element.enWord,
+			latWord: element.latWord,
+			anglitonWord: element.anglitonWord,
+			wordId: element.id,
+			defaultTranslate: element.defaultTranslate
+		})
 	}
 }
-function addWordToDictionary(ruWord, enWord, latWord, anglitonWord) {
+function addWordToDictionary({ruWord, enWord, latWord, anglitonWord} = {}) {
 	const dictionary = JSON.parse(localStorage.getItem('vaproliumDictionary')) ?? []
-	dictionary.push({ruWord, enWord, latWord, anglitonWord})
+	const id = getUniqueId('word-')
+	const defaultTranslate = {ruWord, enWord, latWord, anglitonWord}
+	dictionary.push({id, ruWord, enWord, latWord, anglitonWord, defaultTranslate})
 	localStorage.setItem('vaproliumDictionary', JSON.stringify(dictionary))
-	outputDictionary.innerHTML += `<tr><td>${ruWord}</td><td>${enWord}</td><td>${latWord}</td><td>${anglitonWord}</td></tr>`
-	alert.success(`Word ${ruWord} - ${anglitonWord} added to dictionary`)
+	addRowElement({
+		ruWord,
+		enWord,
+		latWord,
+		anglitonWord,
+		wordId: id,
+		defaultTranslate
+	})
+	alert.success(`Слово ${ruWord}(${anglitonWord}) добавлено в словарь`)
 }
 function checkThisWordInDictionary(word) {
 	const dictionary = JSON.parse(localStorage.getItem('vaproliumDictionary'))
 	if(dictionary === null) return false
 	for (let i = 0; i < dictionary.length; i++) {
 		const element = dictionary[i];
-		if(element.ruWord === word) {
-			alert.warn('This word already in dictionary')
+		if(element.ruWord.toLowerCase() === word.toLowerCase()) {
+			alert.warn(`Такое слово уже есть в словаре.<br>Слово ${word} - ${element.anglitonWord}`)
 			return true
 		}
 	}
 	return false
+}
+function removeWordFromDictionary(word, row) {
+	const dictionary = JSON.parse(localStorage.getItem('vaproliumDictionary'))
+	if(dictionary === null) return
+	for (let i = 0; i < dictionary.length; i++) {
+		const element = dictionary[i];
+		if(row.dataset.wordId === element.id) {
+			dictionary.splice(i, 1)
+			localStorage.setItem('vaproliumDictionary', JSON.stringify(dictionary))
+			if(row) deleteRowElement(row, word)
+			alert.success(`Слово ${word} удалено из словаря`)
+			return
+		}
+	}
+}
+function updateWordInDictionary({ruWord, enWord, latWord, anglitonWord, row} = {}) {
+	const dictionary = JSON.parse(localStorage.getItem('vaproliumDictionary'))
+	if(dictionary === null) return
+	for (let i = 0; i < dictionary.length; i++) {
+		const element = dictionary[i];
+		if(row.dataset.wordId === element.id) {
+			dictionary[i] = {...dictionary[i], ruWord, enWord, latWord, anglitonWord}
+			localStorage.setItem('vaproliumDictionary', JSON.stringify(dictionary))
+			if(row) updateRowElement({
+				row,
+				ruWord,
+				enWord,
+				latWord,
+				anglitonWord,
+				defaultTranslate: element.defaultTranslate
+			})
+			alert.success(`Слово ${ruWord}(${anglitonWord}) обновлено`)
+			return
+		}
+	}
 }
 
 getDirectionary()

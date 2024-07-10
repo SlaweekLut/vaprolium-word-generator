@@ -33,7 +33,7 @@ th, td {
 }
 td {
 	border-color: gray;
-	color: gray;
+	color: hsl(0, 0%, 50%);
 }
 form {
 	padding: 8px;
@@ -44,6 +44,13 @@ input {
 }
 button {
 	padding: 4px 8px;
+}
+
+.table__cell--edited {
+	color: hsl(40, 50%, 50%);
+}
+.table__cell--edited::after {
+	content: '✎';
 }
 
 .alert__container {
@@ -141,4 +148,79 @@ button {
 .alert__body {
 	padding: 0.5rem 1rem;
 	margin: 0;
+}
+
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0,0,0,0.5);
+	z-index: 100;
+	cursor: pointer;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease-in-out;
+}
+.modal.active {
+	opacity: 1;
+	pointer-events: all;
+	z-index: 101;
+}
+.modal__container {
+	background: #fff;
+	padding: 16px;
+	border-radius: 8px;
+	cursor: default;
+	transform: scale(0.8);
+	transition: transform 0.3s ease-in-out;
+}
+.modal.active .modal__container {
+	transform: scale(1);
+}
+.modal__actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	justify-content: center;
+}
+*+.modal__actions {
+	margin-top: 16px;
+}
+.modal__text {
+	margin: 0;
+	text-align: center;
+}
+.modal__input {
+	width: 100%;
+}
+*+.modal__input {
+	margin-top: 8px;
+}
+
+.button {
+	padding: 4px 8px;
+	cursor: pointer;
+	border-radius: 4px;
+	background: #fff;
+	border: none;
+	transition: background 0.3s ease-in-out;
+}
+.button--primary {
+	background: hsl(195, 53%, 79%);
+	color: #fff;
+}
+.button--danger {
+	background: hsl(0, 79%, 72%);
+	color: #fff;
+}
+.button--danger:hover {
+	background: hsl(0, 79%, 62%);
+}
+.button--primary:hover {
+	background: hsl(195, 53%, 69%);
 }
