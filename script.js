@@ -105,6 +105,8 @@ const translateRuToLat = async (word) => {
 };
 const translateRuToAngliton = async (word) => {
 	let {enWord, latWord} = await translateWord(word);
+	if(checkWordArticle(enWord)) enWord = enWord.split(' ')[1]
+	if(checkWordArticle(latWord)) latWord = latWord.split(' ')[1]
 	enWord = enWord.toLowerCase();
 	latWord = latWord.toLowerCase();
 	let result = `${enWord} - ${latWord} - Нет правила перевода`;
@@ -142,12 +144,13 @@ const translateRuToAngliton = async (word) => {
 	return upperFirstLetter(result.trim());
 }
 const translateWord = async (word) => {
-	const enWord = await translateRuToEn(word);
-	const latWord = await translateRuToLat(word);
+	console.log("translater",word)
+	const enWord = await translateRuToEn(upperFirstLetter(word));
+	const latWord = await translateRuToLat(upperFirstLetter(word));
 	return {enWord, latWord};
 } 
 const checkWordArticle = (word) => {
-	console.log(word.split(' '))
+	return word.split(' ').length > 1
 }
 const createConfirmationModal = (callbackConfirm, callbackCancel) => {
 	const id = getUniqueId('confirmation-modal-');
@@ -333,12 +336,13 @@ const outputDictionary = document.querySelector('#outputDictionary');
 
 TranslateForm.addEventListener('submit', async (event) => {
 	event.preventDefault();
-	if(checkThisWordInDictionary(SrcWord.value)) return
-
-	const {enWord, latWord} = await translateWord(SrcWord.value);
-	const anglitonWord = await translateRuToAngliton(enWord, latWord);
-	// checkWordArticle(enWord)
-	// checkWordArticle(latWord)
+	let ruWord = SrcWord.value
+	if(checkThisWordInDictionary(ruWord)) return
+	let {enWord, latWord} = await translateWord(ruWord);
+	console.log("src", enWord, latWord);
+	if(checkWordArticle(enWord)) enWord = enWord.split(' ')[1]
+	if(checkWordArticle(latWord)) latWord = latWord.split(' ')[1]
+	const anglitonWord = await translateRuToAngliton(ruWord);
 	const enWordSyllables = splitIntoSyllables(enWord);
 	const latWordSyllables = splitIntoSyllables(latWord);
 	const anglitonWordSyllables = splitIntoSyllables(anglitonWord);
@@ -351,10 +355,10 @@ TranslateForm.addEventListener('submit', async (event) => {
 	outputLatinSyllables.innerText = latWordSyllables.join(' ');
 	outputAnglitonSyllables.innerText = anglitonWordSyllables.join(' ');
 
-	outputFullWord.innerText = `${SrcWord.value} => ${enWord} + ${latWord} => ${anglitonWord}`
+	outputFullWord.innerText = `${ruWord} => ${enWord} + ${latWord} => ${anglitonWord}`
 
 	addWordToDictionary({
-		ruWord: upperFirstLetter(SrcWord.value),
+		ruWord: upperFirstLetter(ruWord),
 		enWord: upperFirstLetter(enWord),
 		latWord: upperFirstLetter(latWord),
 		anglitonWord: upperFirstLetter(anglitonWord)
